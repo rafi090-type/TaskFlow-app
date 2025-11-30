@@ -80,7 +80,7 @@ Ikuti langkah ini untuk menjalankan project di komputer lokal (Localhost):
 
 ## 👨‍💻 Author
 
-**Rafi**
+**Rafi Nur Haq**
 -   Mahasiswa Sistem Informasi
 -   GitHub: [@rafi090-type](https://github.com/rafi090-type)
 
