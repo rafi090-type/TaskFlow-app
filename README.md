@@ -78,5 +78,12 @@ Ikuti langkah ini untuk menjalankan project di komputer lokal (Localhost):
 -   Mahasiswa Sistem Informasi
 -   GitHub: [@rafi090-type](https://github.com/rafi090-type)
 
+
+---
+## 👤 User Demo
+-    User One
+-    Email: user1@example.com
+-    Password: password123
+
 ---
 *Project ini dibuat untuk memenuhi tugas [Sebutkan Mata Kuliah/Project Pribadi] dan sebagai portofolio pengembangan web menggunakan Laravel.*
