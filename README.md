@@ -18,7 +18,10 @@
 ---
 
 ## 📸 Screenshots
-*(Disarankan: Masukkan screenshot aplikasi di sini nanti, misal: Halaman Dashboard atau Halaman Input Tugas)*
+
+![TaskFlow Dashboard](screenshots/dashboard.png)
+*Halaman Dashboard TaskFlow - Menampilkan daftar tugas dan statistik produktivitas*
+
 
 ---
 
