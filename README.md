@@ -44,7 +44,7 @@ Ikuti langkah ini untuk menjalankan project di komputer lokal (Localhost):
 
 1.  **Clone Repository**
     ```bash
-    git clone [https://github.com/rafi090-type/TaskFlow-app.git](https://github.com/rafi090-type/TaskFlow-app.git)
+    git clone [https://github.com/rafi090-type/TaskFlow-app.git]
     cd TaskFlow-app
     ```
 
