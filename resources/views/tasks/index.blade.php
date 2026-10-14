@@ -219,10 +219,115 @@
                     </div>
                 @endif
 
+                <!-- Search and Filter Section -->
+                <div class="bg-white shadow rounded-lg mb-6 p-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <!-- Search Bar -->
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="text"
+                                       id="search-input"
+                                       value="{{ $filters['search'] ?? '' }}"
+                                       placeholder="Search tasks..."
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <!-- Filter Toggle Button -->
+                        <button onclick="toggleFilters()" class="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            <i class="fas fa-filter mr-2"></i>
+                            Filters
+                            @if(!empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to']))
+                                <span class="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">Active</span>
+                            @endif
+                        </button>
+
+                        <!-- Clear Filters Button -->
+                        @if(!empty($filters['search']) || !empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to']))
+                            <a href="{{ route('tasks.index') }}" class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <i class="fas fa-times mr-2"></i>
+                                Clear All
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Advanced Filters -->
+                    <div id="filters-panel" class="{{ (!empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to'])) ? '' : 'hidden' }} mt-4 pt-4 border-t border-gray-200">
+                        <form action="{{ route('tasks.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Priority Filter -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                <select name="priority" class="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Priorities</option>
+                                    <option value="high" {{ ($filters['priority'] ?? '') === 'high' ? 'selected' : '' }}>High</option>
+                                    <option value="medium" {{ ($filters['priority'] ?? '') === 'medium' ? 'selected' : '' }}>Medium</option>
+                                    <option value="low" {{ ($filters['priority'] ?? '') === 'low' ? 'selected' : '' }}>Low</option>
+                                </select>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <select name="category" class="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Categories</option>
+                                    <option value="work" {{ ($filters['category'] ?? '') === 'work' ? 'selected' : '' }}>Work</option>
+                                    <option value="personal" {{ ($filters['category'] ?? '') === 'personal' ? 'selected' : '' }}>Personal</option>
+                                    <option value="study" {{ ($filters['category'] ?? '') === 'study' ? 'selected' : '' }}>Study</option>
+                                    <option value="shopping" {{ ($filters['category'] ?? '') === 'shopping' ? 'selected' : '' }}>Shopping</option>
+                                    <option value="health" {{ ($filters['category'] ?? '') === 'health' ? 'selected' : '' }}>Health</option>
+                                    <option value="education" {{ ($filters['category'] ?? '') === 'education' ? 'selected' : '' }}>Education</option>
+                                    <option value="other" {{ ($filters['category'] ?? '') === 'other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="status" class="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Status</option>
+                                    <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="completed" {{ ($filters['status'] ?? '') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                </select>
+                            </div>
+
+                            <!-- Due Date Range -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                <div class="flex gap-2">
+                                    <input type="date"
+                                           name="due_date_from"
+                                           value="{{ $filters['due_date_from'] ?? '' }}"
+                                           placeholder="From"
+                                           class="flex-1 border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <input type="date"
+                                           name="due_date_to"
+                                           value="{{ $filters['due_date_to'] ?? '' }}"
+                                           placeholder="To"
+                                           class="flex-1 border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Apply Filters Button -->
+                            <div class="md:col-span-2 lg:col-span-4 flex justify-end gap-2">
+                                <input type="hidden" name="search" value="{{ $filters['search'] ?? '' }}">
+                                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Tasks List -->
                 <div class="bg-white shadow rounded-lg overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                         <h2 class="text-lg font-medium text-gray-900">My Tasks</h2>
+                        @if(!empty($filters['search']) || !empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to']))
+                            <span class="text-sm text-gray-500">
+                                Showing {{ $tasks->count() }} task{{ $tasks->count() !== 1 ? 's' : '' }}
+                            </span>
+                        @endif
                     </div>
                     
                     @if($tasks->count() > 0)
@@ -367,14 +472,26 @@
                     @else
                         <div class="px-6 py-12 text-center">
                             <div class="text-gray-400 mb-4">
-                                <i class="fas fa-tasks text-4xl"></i>
+                                @if(!empty($filters['search']) || !empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to']))
+                                    <i class="fas fa-search text-4xl"></i>
+                                @else
+                                    <i class="fas fa-tasks text-4xl"></i>
+                                @endif
                             </div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-1">No tasks yet</h3>
-                            <p class="text-gray-500 mb-4">Get started by creating a new task</p>
-                            <button onclick="openAddTaskModal()" 
-                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150">
-                                <i class="fas fa-plus mr-2"></i> Add Your First Task
-                            </button>
+                            @if(!empty($filters['search']) || !empty($filters['priority']) || !empty($filters['category']) || !empty($filters['status']) || !empty($filters['due_date_from']) || !empty($filters['due_date_to']))
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">No tasks match your filters</h3>
+                                <p class="text-gray-500 mb-4">Try adjusting your search or filters</p>
+                                <a href="{{ route('tasks.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition ease-in-out duration-150">
+                                    <i class="fas fa-times mr-2"></i> Clear Filters
+                                </a>
+                            @else
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">No tasks yet</h3>
+                                <p class="text-gray-500 mb-4">Get started by creating a new task</p>
+                                <button onclick="openAddTaskModal()"
+                                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150">
+                                    <i class="fas fa-plus mr-2"></i> Add Your First Task
+                                </button>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -1141,7 +1258,36 @@
                     toggleSubtask(subtaskId);
                 });
             });
+
+            // Search functionality with debounce
+            let searchTimeout;
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        performSearch(this.value);
+                    }, 500);
+                });
+            }
         });
+
+        // Toggle filters panel
+        function toggleFilters() {
+            const filtersPanel = document.getElementById('filters-panel');
+            filtersPanel.classList.toggle('hidden');
+        }
+
+        // Perform search
+        function performSearch(searchTerm) {
+            const url = new URL(window.location.href);
+            if (searchTerm.trim()) {
+                url.searchParams.set('search', searchTerm);
+            } else {
+                url.searchParams.delete('search');
+            }
+            window.location.href = url.toString();
+        }
     </script>
 </body>
 </html>

@@ -44,15 +44,53 @@ class TaskController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $today = now()->startOfDay();
         $endOfDay = now()->endOfDay();
 
-        // Get all tasks for the user
-        $tasks = $user->tasks()
-            ->with('subtasks')
+        // Build query with search and filters
+        $query = $user->tasks()->with('subtasks');
+
+        // Search by title or description
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Filter by priority
+        if ($request->has('priority') && !empty($request->priority)) {
+            $query->where('priority', $request->priority);
+        }
+
+        // Filter by category
+        if ($request->has('category') && !empty($request->category)) {
+            $query->where('category', $request->category);
+        }
+
+        // Filter by status (completed/pending)
+        if ($request->has('status') && !empty($request->status)) {
+            if ($request->status === 'completed') {
+                $query->where('completed', true);
+            } elseif ($request->status === 'pending') {
+                $query->where('completed', false);
+            }
+        }
+
+        // Filter by due date range
+        if ($request->has('due_date_from') && !empty($request->due_date_from)) {
+            $query->where('due_date', '>=', $request->due_date_from);
+        }
+        if ($request->has('due_date_to') && !empty($request->due_date_to)) {
+            $query->where('due_date', '<=', $request->due_date_to);
+        }
+
+        // Get filtered tasks
+        $tasks = $query
             ->orderBy('completed')
             ->orderBy('due_date')
             ->latest()
@@ -131,7 +169,15 @@ class TaskController extends Controller
             'todaysCompleted' => $todaysCompleted,
             'todaysProgress' => $todaysProgress,
             'weeklyProgress' => $weeklyProgress,
-            'randomQuote' => $randomQuote
+            'randomQuote' => $randomQuote,
+            'filters' => [
+                'search' => $request->search,
+                'priority' => $request->priority,
+                'category' => $request->category,
+                'status' => $request->status,
+                'due_date_from' => $request->due_date_from,
+                'due_date_to' => $request->due_date_to,
+            ]
         ]);
     }
 
