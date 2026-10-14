@@ -52,6 +52,7 @@ class TaskController extends Controller
 
         // Get all tasks for the user
         $tasks = $user->tasks()
+            ->with('subtasks')
             ->orderBy('completed')
             ->orderBy('due_date')
             ->latest()

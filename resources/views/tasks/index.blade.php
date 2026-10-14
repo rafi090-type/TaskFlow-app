@@ -281,9 +281,61 @@
                                                             </span>
                                                         @endif
                                                     </div>
+
+                                                    <!-- Subtasks Section -->
+                                                    @if($task->subtasks->count() > 0)
+                                                        <div class="mt-3">
+                                                            <div class="flex items-center justify-between mb-2">
+                                                                <button onclick="toggleSubtasks({{ $task->id }})" class="text-xs text-blue-600 hover:text-blue-800 flex items-center">
+                                                                    <i class="fas fa-chevron-down mr-1" id="subtasks-chevron-{{ $task->id }}"></i>
+                                                                    Subtasks ({{ $task->subtasks->count() }})
+                                                                </button>
+                                                                <span class="text-xs text-gray-500">
+                                                                    {{ $task->subtasks->where('is_completed', true)->count() }}/{{ $task->subtasks->count() }} done
+                                                                </span>
+                                                            </div>
+                                                            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                                                                @php
+                                                                    $subtaskProgress = $task->subtasks->count() > 0
+                                                                        ? round(($task->subtasks->where('is_completed', true)->count() / $task->subtasks->count()) * 100)
+                                                                        : 0;
+                                                                @endphp
+                                                                <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $subtaskProgress }}%"></div>
+                                                            </div>
+                                                            <div id="subtasks-list-{{ $task->id }}" class="hidden space-y-2 pl-4 border-l-2 border-gray-200">
+                                                                @foreach($task->subtasks as $subtask)
+                                                                    <div class="flex items-center justify-between py-1">
+                                                                        <div class="flex items-center">
+                                                                            <input type="checkbox"
+                                                                                   class="h-3 w-3 text-blue-600 rounded border-gray-300 focus:ring-blue-500 subtask-complete"
+                                                                                   data-subtask-id="{{ $subtask->id }}"
+                                                                                   {{ $subtask->is_completed ? 'checked' : '' }}>
+                                                                            <span class="ml-2 text-xs {{ $subtask->is_completed ? 'line-through text-gray-400' : 'text-gray-700' }}">
+                                                                                {{ $subtask->title }}
+                                                                            </span>
+                                                                        </div>
+                                                                        <button onclick="deleteSubtask({{ $subtask->id }}, {{ $task->id }})" class="text-gray-400 hover:text-red-500 text-xs">
+                                                                            <i class="fas fa-times"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <!-- Add Subtask Form -->
+                                                    <div class="mt-2 flex items-center space-x-2">
+                                                        <input type="text"
+                                                               id="new-subtask-{{ $task->id }}"
+                                                               placeholder="Add subtask..."
+                                                               class="flex-1 text-xs border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                        <button onclick="addSubtask({{ $task->id }})" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Actions -->
                                             <div class="ml-4 flex items-center space-x-2">
                                                 <button onclick="openEditModal(this)" 
@@ -963,26 +1015,133 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                
+
                 if (!response.ok) return;
-                
+
                 const data = await response.json();
-                
+
                 // Update the progress display
                 const progressElement = document.querySelector('.progress-bar');
                 const progressText = document.querySelector('.progress-percentage');
                 const completedCount = document.getElementById('completed-count');
                 const totalCount = document.getElementById('total-count');
-                
+
                 if (progressElement) progressElement.style.width = `${data.completionRate}%`;
                 if (progressText) progressText.textContent = `${Math.round(data.completionRate)}%`;
                 if (completedCount) completedCount.textContent = data.completedTasks;
                 if (totalCount) totalCount.textContent = data.totalTasks;
-                
+
             } catch (error) {
                 console.error('Error updating statistics:', error);
             }
         }
+
+        // Subtask functions
+        function toggleSubtasks(taskId) {
+            const subtasksList = document.getElementById(`subtasks-list-${taskId}`);
+            const chevron = document.getElementById(`subtasks-chevron-${taskId}`);
+
+            if (subtasksList.classList.contains('hidden')) {
+                subtasksList.classList.remove('hidden');
+                chevron.classList.remove('fa-chevron-down');
+                chevron.classList.add('fa-chevron-up');
+            } else {
+                subtasksList.classList.add('hidden');
+                chevron.classList.remove('fa-chevron-up');
+                chevron.classList.add('fa-chevron-down');
+            }
+        }
+
+        async function addSubtask(taskId) {
+            const input = document.getElementById(`new-subtask-${taskId}`);
+            const title = input.value.trim();
+
+            if (!title) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+            try {
+                const response = await fetch(`{{ route('subtasks.store', ':taskId') }}`.replace(':taskId', taskId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ title: title })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    input.value = '';
+                    location.reload();
+                } else {
+                    alert('Failed to add subtask: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error adding subtask:', error);
+                alert('Error adding subtask');
+            }
+        }
+
+        async function toggleSubtask(subtaskId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+            try {
+                const response = await fetch(`{{ route('subtasks.toggle', ':subtaskId') }}`.replace(':subtaskId', subtaskId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error toggling subtask:', error);
+            }
+        }
+
+        async function deleteSubtask(subtaskId, taskId) {
+            if (!confirm('Are you sure you want to delete this subtask?')) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+            try {
+                const response = await fetch(`{{ route('subtasks.destroy', ':subtaskId') }}`.replace(':subtaskId', subtaskId), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error deleting subtask:', error);
+            }
+        }
+
+        // Event listeners for subtask checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.subtask-complete').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const subtaskId = this.dataset.subtaskId;
+                    toggleSubtask(subtaskId);
+                });
+            });
+        });
     </script>
 </body>
 </html>
